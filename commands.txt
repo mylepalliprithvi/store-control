@@ -1,2 +1,8 @@
 -- store init --
-used to initialize store in the repository --
+/* used to initialize store in the repository */
+
+-- store hash-content <file> --
+/* used to hash the contents of file in file argument and store in .store/objects */
+
+-- store cat-file <hash> --
+/* used to return the contents of provided hash */
