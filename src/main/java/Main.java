@@ -1,103 +1,90 @@
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import file.FileUtil;
+import hash.*;
+import init.*;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.util.zip.Deflater;
-import java.security.NoSuchAlgorithmException;
-import java.util.zip.Inflater;
+import java.util.Arrays;
 
 public class Main {
+
     public static void main(String[] args) throws Exception {
-//        String c = "abcd";
-//        byte[] input = c.getBytes(StandardCharsets.UTF_8);
-//        String res = hashObject(input,"blob");
-        String hash = "85df50785d62d3b05ab03d9cbf7e4a0b49449730";
-        String content = readObject(hash);
-        System.out.println(content);
+        int n = args.length;
+        String arg0 = "";
+        String arg1 = "";
+        String arg2 = "";
+        Init init;
+        HashContent hashContent;
+        FileUtil fileUtil;
+        if(n>0)
+        {
+            arg0 = args[0];
+        }
+        System.out.println("Tool selected: "+arg0);
+        if(arg0.equalsIgnoreCase("store"))
+        {
+            init = new Init();
+            hashContent = new HashContent();
+        }
+        else {
+            init = null;
+            System.out.println("Tool selected is not store, hence skip store process");
+            return;
+        }
+        if(n>1)
+        {
+            arg1 = args[1];
+        }
+        System.out.println("command selected: "+arg1);
+        if(n>2)
+        {
+            arg2 = args[2];
+
+        }
+        System.out.println("Argument 2: "+arg2);
+
+        if(arg1.equalsIgnoreCase("init"))
+        {
+            System.out.println("Proceeding to initialize store as command entered is 'store init' ");
+            init.init();
+        }
+
+        if(arg1.equalsIgnoreCase("hash-object") && !arg2.isEmpty())
+        {
+            System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
+            if(init==null)
+            {
+                System.out.println("Store not initalized!!");
+                return;
+            }
+            //check file exists
+            fileUtil = new FileUtil();
+            boolean fileExists = fileUtil.doesFileExist(arg2);
+            if(!fileExists)
+            {
+                System.out.println("File "+arg2+ " does not exist!!");
+                return;
+            }
+            //hash content
+            byte[] fileBytes = Files.readAllBytes(Path.of(arg2));
+            String hashCode = hashContent.hashObject(fileBytes,"blob");
+            System.out.println("Hash code of file: "+hashCode);
+        }
+
+        if(arg1.equalsIgnoreCase("cat-file") && !arg2.isEmpty())
+        {
+            if(init==null)
+            {
+                System.out.println("Store not initalized!!");
+                return;
+            }
+            System.out.println("Proceeding to read out contents of hash provided as command selected is: 'store cat-file' ");
+            String content = hashContent.readObject(arg2);
+            System.out.println("Content of hash code "+arg2+" is: "+content);
+        }
     }
 
-    /*
-        @params:
-        byte array containing contents needed to be hashed
-        string type
-        @returns:
-        string hash id
-     */
-    public static String hashObject(byte[] content, String type) throws NoSuchAlgorithmException, IOException {
-        int contentSize = content.length;
-        String headerMessage = type+" "+String.valueOf(contentSize)+"\0";
-        byte[] headerBytes = headerMessage.getBytes(StandardCharsets.UTF_8);
-
-        byte[] store  = new byte[headerBytes.length + contentSize];
-        System.arraycopy(headerBytes,0,store,0,headerBytes.length);
-        System.arraycopy(content,0,store,headerBytes.length,contentSize);
 
 
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] digest = md.digest(store);
-        StringBuilder hex = new StringBuilder();
-        for(byte b : digest)
-        {
-            hex.append(String.format("%02x",b));
-        }
-        String hashMessage = hex.toString();
-        System.out.println("Hashed Message: "+hashMessage);
-
-        Deflater deflater = new Deflater();
-        deflater.setInput(store);
-        deflater.finish();
-
-        ByteArrayOutputStream compressed = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        while(!deflater.finished())
-        {
-            int n = deflater.deflate(buffer);
-            compressed.write(buffer,0,n);
-        }
-        Path dir = Paths.get(".mygit","objects",hashMessage.substring(0,2));
-        Files.createDirectories(dir);
-        Files.write(dir.resolve(hashMessage.substring(2)),compressed.toByteArray());
-        return hashMessage;
-    }
-
-
-    /*
-    @params:
-    hashMessage : string
-    @returns:
-    content : string
-     */
-
-    public static String readObject(String hashMessage) throws Exception
-    {
-        String initPath = hashMessage.substring(0,2);
-        String nextPath = hashMessage.substring(2);
-
-        Path path = Paths.get(".mygit","objects",initPath,nextPath);
-        File file = new File(path.toUri());
-        if(!file.exists())
-        {
-            System.out.println("File does not exist!!");
-        }
-        byte[] contentBytes = Files.readAllBytes(path);
-        byte[] buffer = new byte[1024];
-        Inflater inflater = new Inflater();
-        inflater.setInput(contentBytes);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        while(!inflater.finished())
-        {
-            int n = inflater.inflate(buffer);
-            outputStream.write(buffer,0,n);
-        }
-        inflater.end();
-        byte[] output = outputStream.toByteArray();
-        String outputMessage = new String(output);
-        String[] splitArray = outputMessage.split("\0");
-        return splitArray[1];
-    }
 
 }
