@@ -90,7 +90,7 @@ public class HashContent {
         inflater.end();
         byte[] output = outputStream.toByteArray();
         String outputMessage = new String(output);
-        String[] splitArray = outputMessage.split("\0");
+        String[] splitArray = outputMessage.split("\0",2);
         return splitArray[1];
     }
 }
