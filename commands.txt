@@ -6,3 +6,7 @@
 
 -- store cat-file <hash> --
 /* used to return the contents of provided hash */
+
+-- store add <file> --
+/* adds a file to the index which can be commited */
+/* use store add .  to stage all files */

@@ -1,7 +1,10 @@
+import add.Add;
+import common.Constants;
 import file.FileUtil;
 import hash.*;
 import init.*;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -81,6 +84,44 @@ public class Main {
             System.out.println("Proceeding to read out contents of hash provided as command selected is: 'store cat-file' ");
             String content = hashContent.readObject(arg2);
             System.out.println("Content of hash code "+arg2+" is: "+content);
+        }
+
+        if(arg1.equals("add"))
+        {
+            if(init==null)
+            {
+                System.out.println("Store not initalized!!");
+                return;
+            }
+
+            System.out.println("Proceeding to add file: "+arg2+" to store");
+            if(arg2.equals("."))
+            {
+                addAllFiles(new File("."));
+            }
+            else{
+                Add.addFile(Path.of(arg2));
+            }
+        }
+    }
+
+    private static void addAllFiles(File directory) throws Exception
+    {
+        File[] listOfFiles = directory.listFiles();
+        for(File file : listOfFiles)
+        {
+            if(file.getName().equals(Constants.root))
+            {
+                continue;
+            }
+            if(file.isDirectory())
+            {
+                addAllFiles(file);
+            }
+            else
+            {
+                Add.addFile(file.toPath());
+            }
         }
     }
 

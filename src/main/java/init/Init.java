@@ -1,9 +1,13 @@
 package init;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+
 import common.Constants;
 
 public class Init {
@@ -24,5 +28,17 @@ public class Init {
         Files.createDirectories(basePath.resolve("refs").resolve("heads"));
         Path mainFile = path.resolve("HEAD");
         Files.writeString(mainFile,"ref: refs/heads/main\n");
+        /*
+            creates index.json which is used to track added and not added contents
+         */
+        Path indexFile = path.resolve("index.json");
+        try{
+            Files.createFile(indexFile);
+            Files.writeString(indexFile,"[]");
+        }
+        catch(FileAlreadyExistsException e)
+        {
+            System.err.println("File index.json exists already!!");
+        }
     }
 }
