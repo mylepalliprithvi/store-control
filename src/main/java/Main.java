@@ -1,4 +1,5 @@
 import add.Add;
+import commit.Commit;
 import common.Constants;
 import file.FileUtil;
 import hash.*;
@@ -52,7 +53,7 @@ public class Main {
             init.init();
         }
 
-        if(arg1.equalsIgnoreCase("hash-object") && !arg2.isEmpty())
+        if(arg1.equals("hash-object") && !arg2.isEmpty())
         {
             System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
             if(init==null)
@@ -74,7 +75,7 @@ public class Main {
             System.out.println("Hash code of file: "+hashCode);
         }
 
-        if(arg1.equalsIgnoreCase("cat-file") && !arg2.isEmpty())
+        if(arg1.equals("cat-file") && !arg2.isEmpty())
         {
             if(init==null)
             {
@@ -102,6 +103,12 @@ public class Main {
             else{
                 Add.addFile(Path.of(arg2));
             }
+        }
+
+        if(arg1.equals("commit") && !arg2.isEmpty())
+        {
+            System.out.println("Proceeding to commit as chosen arg1: "+arg1);
+            Commit.commit(arg2);
         }
     }
 

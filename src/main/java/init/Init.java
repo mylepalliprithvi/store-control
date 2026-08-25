@@ -40,5 +40,18 @@ public class Init {
         {
             System.err.println("File index.json exists already!!");
         }
+
+        /*
+            creates config.json file for storing user details
+         */
+        Path configFile = path.resolve("config.json");
+        try{
+            Files.createFile(configFile);
+            Files.writeString(configFile,"{}");
+        }
+        catch(FileAlreadyExistsException e)
+        {
+            System.err.println("File config.json exists already!!");
+        }
     }
 }
