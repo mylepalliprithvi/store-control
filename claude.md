@@ -10,9 +10,9 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 
 - Set up a Maven or Gradle project (either is fine; Maven is a bit more common for tutorials).
 - Create a `Main` class with a `main(String[] args)` that just prints the first argument (`args[0]`).
-- Decide your repo folder name, e.g. `.mygit` (to avoid clashing with real `.git`).
+- Decide your repo folder name, e.g. `.store` (to avoid clashing with real `.git`).
 
-**Done when:** `java -jar mygit.jar hello` prints `hello`.
+**Done when:** `java -jar store.jar hello` prints `hello`.
 
 ---
 
@@ -24,7 +24,7 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
     1. Prepends a header like `"blob <size>\0"` to the content (mimic Git's format).
     2. Hashes the result with `MessageDigest.getInstance("SHA-1")`.
     3. Compresses it with `Deflater`.
-    4. Writes it to `.mygit/objects/<first 2 chars>/<remaining 38 chars>`.
+    4. Writes it to `.store/objects/<first 2 chars>/<remaining 38 chars>`.
 - Write the inverse: `byte[] readObject(String hash)` — locate the file, `Inflater` to decompress, strip the header, return content.
 
 **Done when:** You can hash a string, write it as an object, read it back, and get identical bytes.
@@ -33,10 +33,10 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 
 ## Phase 2 — Repository initialization (`init`)
 
-**Goal:** `mygit init` creates the directory structure.
+**Goal:** `store init` creates the directory structure.
 
 ```
-.mygit/
+.store/
   objects/
   refs/heads/
   HEAD          → contains "ref: refs/heads/main"
@@ -50,8 +50,8 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 
 **Goal:** Expose Phase 1 as CLI commands — invaluable for debugging everything after this.
 
-- `mygit hash-object <file>` → hashes and stores the file, prints the hash.
-- `mygit cat-file <hash>` → prints the decompressed content of an object.
+- `store hash-object <file>` → hashes and stores the file, prints the hash.
+- `store cat-file <hash>` → prints the decompressed content of an object.
 
 **Done when:** You can round-trip any file through these two commands from the terminal.
 
@@ -77,8 +77,8 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 **Goal:** Decouple "what's in the working directory" from "what will be committed."
 
 - Design an index format — simplest option: a text or JSON file mapping `path → blob hash`.
-- `mygit add <file>` → hashes the file as a blob, adds/updates the entry in the index.
-- `mygit add .` → adds all tracked/new files.
+- `store add <file>` → hashes the file as a blob, adds/updates the entry in the index.
+- `store add .` → adds all tracked/new files.
 - Support removing a path from the index (for a future `rm`/`reset`).
 
 **Done when:** You can `add` a few files and print out the index contents showing correct paths and hashes.
@@ -94,7 +94,7 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 - Hash and store it like any other object.
 - Update the current branch ref (`refs/heads/main`) to point to the new commit hash.
 
-**Done when:** `mygit commit -m "message"` creates a commit object and moves the branch pointer forward.
+**Done when:** `store commit -m "message"` creates a commit object and moves the branch pointer forward.
 
 ---
 
@@ -105,7 +105,7 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 - Starting from the current branch's commit hash, follow `parent` pointers backward.
 - Print each commit's hash, message, author, timestamp.
 
-**Done when:** `mygit log` shows your commits in reverse chronological order.
+**Done when:** `store log` shows your commits in reverse chronological order.
 
 ---
 
@@ -113,8 +113,8 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 
 **Goal:** Multiple lines of development.
 
-- `mygit branch <name>` → create a new file in `refs/heads/` pointing at the current commit.
-- `mygit branch` (no args) → list branches, marking the current one.
+- `store branch <name>` → create a new file in `refs/heads/` pointing at the current commit.
+- `store branch` (no args) → list branches, marking the current one.
 - Understand `HEAD` as a symbolic ref: it points to a branch file, not directly to a commit (except in "detached HEAD" state).
 
 **Done when:** You can create branches and confirm each one independently tracks its own tip commit.
@@ -172,7 +172,7 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 
 ## Phase 13 — Ignore patterns
 
-**Goal:** Respect a `.mygitignore` file.
+**Goal:** Respect a `.storeignore` file.
 
 - Implement glob matching (`*`, `**`, `!negation`) against relative paths.
 - Apply it in `add` (skip matched files) and `status` (don't report them as untracked).
@@ -186,7 +186,7 @@ No frameworks required. Plain Java + standard library (`java.security`, `java.ut
 **Goal:** Make it pleasant to use.
 
 - Swap hand-rolled `switch(args[0])` parsing for a small library like Picocli if you want proper `--flag` support and auto-generated help text.
-- Add meaningful error messages (e.g. "not a mygit repository," "nothing to commit").
+- Add meaningful error messages (e.g. "not a store repository," "nothing to commit").
 - Write unit tests for the object store, tree building, and diff logic — these are the parts most prone to subtle bugs.
 
 **Done when:** Someone unfamiliar with the code can run `--help` and figure out the basic commands.
