@@ -13,3 +13,6 @@
 
 -- store commit <message> --
 /* commits the changes as per index.json and updates refs/heads/main with new hash */
+
+-- store log --
+/* Logs all the commits in descending on current branch */
