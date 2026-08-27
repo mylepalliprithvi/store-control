@@ -10,3 +10,6 @@
 -- store add <file> --
 /* adds a file to the index which can be commited */
 /* use store add .  to stage all files */
+
+-- store commit <message> --
+/* commits the changes as per index.json and updates refs/heads/main with new hash */
