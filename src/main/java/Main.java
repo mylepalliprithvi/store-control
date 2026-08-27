@@ -4,6 +4,7 @@ import common.Constants;
 import file.FileUtil;
 import hash.*;
 import init.*;
+import log.Log;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -45,6 +46,10 @@ public class Main {
             arg2 = args[2];
 
         }
+        if(arg2.isEmpty())
+        {
+            arg2 = "Not Applicable";
+        }
         System.out.println("Argument 2: "+arg2);
 
         if(arg1.equalsIgnoreCase("init"))
@@ -53,7 +58,7 @@ public class Main {
             init.init();
         }
 
-        if(arg1.equals("hash-object") && !arg2.isEmpty())
+        if(arg1.equals("hash-object"))
         {
             System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
             if(init==null)
@@ -75,7 +80,7 @@ public class Main {
             System.out.println("Hash code of file: "+hashCode);
         }
 
-        if(arg1.equals("cat-file") && !arg2.isEmpty())
+        if(arg1.equals("cat-file"))
         {
             if(init==null)
             {
@@ -105,10 +110,16 @@ public class Main {
             }
         }
 
-        if(arg1.equals("commit") && !arg2.isEmpty())
+        if(arg1.equals("commit"))
         {
             System.out.println("Proceeding to commit as chosen arg1: "+arg1);
             Commit.commit(arg2);
+        }
+
+        if(arg1.equals("log"))
+        {
+            System.out.println("Proceeding to log all the commits as chosen command is: "+arg1);
+            Log.log();
         }
     }
 
