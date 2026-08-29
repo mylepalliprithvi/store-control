@@ -1,4 +1,5 @@
 import add.Add;
+import branch.Branch;
 import commit.Commit;
 import common.Constants;
 import file.FileUtil;
@@ -58,7 +59,7 @@ public class Main {
             init.init();
         }
 
-        if(arg1.equals("hash-object"))
+        else if(arg1.equals("hash-object"))
         {
             System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
             if(init==null)
@@ -80,7 +81,7 @@ public class Main {
             System.out.println("Hash code of file: "+hashCode);
         }
 
-        if(arg1.equals("cat-file"))
+        else if(arg1.equals("cat-file"))
         {
             if(init==null)
             {
@@ -92,7 +93,7 @@ public class Main {
             System.out.println("Content of hash code "+arg2+" is: "+content);
         }
 
-        if(arg1.equals("add"))
+        else if(arg1.equals("add"))
         {
             if(init==null)
             {
@@ -110,16 +111,44 @@ public class Main {
             }
         }
 
-        if(arg1.equals("commit"))
+        else if(arg1.equals("commit"))
         {
+            if(init==null)
+            {
+                System.out.println("store not initialized!!");
+                return;
+            }
             System.out.println("Proceeding to commit as chosen arg1: "+arg1);
             Commit.commit(arg2);
         }
 
-        if(arg1.equals("log"))
+        else if(arg1.equals("log"))
         {
+            if(init==null)
+            {
+                System.out.println("store not initialized!!");
+                return;
+            }
             System.out.println("Proceeding to log all the commits as chosen command is: "+arg1);
             Log.log();
+        }
+
+        else if(arg1.equals("branch"))
+        {
+            if(init==null)
+            {
+                System.out.println("store not initialized!!");
+                return;
+            }
+            if(arg2.equals("Not Applicable"))
+            {
+                System.out.println("Proceeding to list all branches as command is: "+arg1);
+                Branch.listAllBranches();
+            }
+            else {
+                System.out.println("Proceeding to create a new branch with name: "+arg2);
+                Branch.branch(arg2);
+            }
         }
     }
 
