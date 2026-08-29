@@ -10,7 +10,6 @@ import log.Log;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 
 public class Main {
 
@@ -18,48 +17,32 @@ public class Main {
         int n = args.length;
         String arg0 = "";
         String arg1 = "";
-        String arg2 = "";
-        Init init;
-        HashContent hashContent;
-        FileUtil fileUtil;
         if(n>0)
         {
             arg0 = args[0];
-        }
-        System.out.println("Tool selected: "+arg0);
-        if(arg0.equalsIgnoreCase("store"))
-        {
-            init = new Init();
-            hashContent = new HashContent();
-        }
-        else {
-            init = null;
-            System.out.println("Tool selected is not store, hence skip store process");
-            return;
         }
         if(n>1)
         {
             arg1 = args[1];
         }
-        System.out.println("command selected: "+arg1);
-        if(n>2)
-        {
-            arg2 = args[2];
+        Init init = new Init();
+        HashContent hashContent = new HashContent();
+        FileUtil fileUtil;
+        System.out.println("command selected: "+arg0);
 
-        }
-        if(arg2.isEmpty())
+        if(arg1.isEmpty())
         {
-            arg2 = "Not Applicable";
+            arg1 = "Not Applicable";
         }
-        System.out.println("Argument 2: "+arg2);
+        System.out.println("Argument 2: "+arg1);
 
-        if(arg1.equalsIgnoreCase("init"))
+        if(arg0.equalsIgnoreCase("init"))
         {
             System.out.println("Proceeding to initialize store as command entered is 'store init' ");
             init.init();
         }
 
-        else if(arg1.equals("hash-object"))
+        else if(arg0.equals("hash-object"))
         {
             System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
             if(init==null)
@@ -69,19 +52,19 @@ public class Main {
             }
             //check file exists
             fileUtil = new FileUtil();
-            boolean fileExists = fileUtil.doesFileExist(arg2);
+            boolean fileExists = fileUtil.doesFileExist(arg1);
             if(!fileExists)
             {
-                System.out.println("File "+arg2+ " does not exist!!");
+                System.out.println("File "+arg1+ " does not exist!!");
                 return;
             }
             //hash content
-            byte[] fileBytes = Files.readAllBytes(Path.of(arg2));
+            byte[] fileBytes = Files.readAllBytes(Path.of(arg1));
             String hashCode = hashContent.hashObject(fileBytes,"blob");
             System.out.println("Hash code of file: "+hashCode);
         }
 
-        else if(arg1.equals("cat-file"))
+        else if(arg0.equals("cat-file"))
         {
             if(init==null)
             {
@@ -89,11 +72,11 @@ public class Main {
                 return;
             }
             System.out.println("Proceeding to read out contents of hash provided as command selected is: 'store cat-file' ");
-            String content = hashContent.readObject(arg2);
-            System.out.println("Content of hash code "+arg2+" is: "+content);
+            String content = hashContent.readObject(arg1);
+            System.out.println("Content of hash code "+arg1+" is: "+content);
         }
 
-        else if(arg1.equals("add"))
+        else if(arg0.equals("add"))
         {
             if(init==null)
             {
@@ -101,17 +84,17 @@ public class Main {
                 return;
             }
 
-            System.out.println("Proceeding to add file: "+arg2+" to store");
-            if(arg2.equals("."))
+            System.out.println("Proceeding to add file: "+arg1+" to store");
+            if(arg1.equals("."))
             {
                 addAllFiles(new File("."));
             }
             else{
-                Add.addFile(Path.of(arg2));
+                Add.addFile(Path.of(arg1));
             }
         }
 
-        else if(arg1.equals("commit"))
+        else if(arg0.equals("commit"))
         {
             if(init==null)
             {
@@ -119,10 +102,10 @@ public class Main {
                 return;
             }
             System.out.println("Proceeding to commit as chosen arg1: "+arg1);
-            Commit.commit(arg2);
+            Commit.commit(arg1);
         }
 
-        else if(arg1.equals("log"))
+        else if(arg0.equals("log"))
         {
             if(init==null)
             {
@@ -133,21 +116,21 @@ public class Main {
             Log.log();
         }
 
-        else if(arg1.equals("branch"))
+        else if(arg0.equals("branch"))
         {
             if(init==null)
             {
                 System.out.println("store not initialized!!");
                 return;
             }
-            if(arg2.equals("Not Applicable"))
+            if(arg1.equals("Not Applicable"))
             {
                 System.out.println("Proceeding to list all branches as command is: "+arg1);
                 Branch.listAllBranches();
             }
             else {
-                System.out.println("Proceeding to create a new branch with name: "+arg2);
-                Branch.branch(arg2);
+                System.out.println("Proceeding to create a new branch with name: "+arg1);
+                Branch.branch(arg1);
             }
         }
     }
