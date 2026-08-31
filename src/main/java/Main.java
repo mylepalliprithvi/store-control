@@ -95,7 +95,7 @@ public class Main {
             }
         }
 
-        else if(arg0.equals("commit"))
+        if(arg1.equals("commit"))
         {
             if(init==null)
             {

@@ -16,3 +16,9 @@
 
 -- store log --
 /* Logs all the commits in descending on current branch */
+
+-- store branch <branch-name> --
+/* Creates a branch with name: <branch-name> */
+
+-- store branch --
+/* Lists all branches in the repository */
