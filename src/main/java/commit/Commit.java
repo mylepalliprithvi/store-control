@@ -64,4 +64,11 @@ public class Commit {
         sb.append(commit.getCommitMessage());
         return sb.toString().getBytes();
     }
+
+    public static String getTreeHashFromCommit(String commitHash) throws Exception {
+        String commitContent = HashContent.readObject(commitHash);
+        String firstLine = commitContent.split("\n",2)[0];
+        return firstLine.replaceFirst("^tree\\s+","");
+    }
+
 }

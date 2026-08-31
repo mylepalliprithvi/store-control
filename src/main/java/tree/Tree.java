@@ -3,6 +3,7 @@ package tree;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import hash.HashContent;
@@ -114,10 +115,11 @@ public class Tree {
     /*
         @param String hashSerializedListOfTreeEntries
         returns
-        @void - prints out structure
+        @Set<TreeEntry> - return a set of all tree entries
      */
-    public static void readTree(String hashSerializedListOfTreeEntries) throws Exception {
+    public static Set<TreeEntry> readTree(String hashSerializedListOfTreeEntries, String parentDirectory) throws Exception {
         String dehash = HashContent.readObject(hashSerializedListOfTreeEntries);
+        Set<TreeEntry> treeContents = new HashSet<>();
         if(!dehash.isEmpty())
         {
             String[] splitStrings = dehash.split("\n");
@@ -131,12 +133,13 @@ public class Tree {
                 String fileName = decodedEntry[3];
                 if(fileType.equals("tree"))
                 {
-                    readTree(hash);
+                    treeContents.addAll(readTree(hash,parentDirectory+fileName+"/"));
                 }
                 System.out.println("Mode: "+fileMode+ " Type: "+fileType+" Hash: "+hash+" Name: "+fileName);
+                TreeEntry node = new TreeEntry(fileMode,fileType,hash,fileName, Path.of(parentDirectory+fileName+"/"));
+                treeContents.add(node);
             }
         }
-
-
+        return treeContents;
     }
 }
