@@ -95,7 +95,7 @@ public class Main {
             }
         }
 
-        if(arg1.equals("commit"))
+        else if(arg0.equals("commit"))
         {
             if(init==null)
             {
@@ -161,7 +161,7 @@ public class Main {
         File[] listOfFiles = directory.listFiles();
         for(File file : listOfFiles)
         {
-            if(file.getName().equals(Constants.root) || file.getName().equals(".git"))
+            if(file.getName().equals(Constants.root) || file.getName().equals(".git") || file.getName().equals("target"))
             {
                 continue;
             }
