@@ -21,6 +21,25 @@ public class HashContent {
         @returns:
         string hash id
      */
+    public static String computeHash(byte[] content, String type) throws NoSuchAlgorithmException {
+        int contentSize = content.length;
+        String headerMessage = type+" "+String.valueOf(contentSize)+"\0";
+        byte[] headerBytes = headerMessage.getBytes(StandardCharsets.UTF_8);
+
+        byte[] store  = new byte[headerBytes.length + contentSize];
+        System.arraycopy(headerBytes,0,store,0,headerBytes.length);
+        System.arraycopy(content,0,store,headerBytes.length,contentSize);
+
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] digest = md.digest(store);
+        StringBuilder hex = new StringBuilder();
+        for(byte b : digest)
+        {
+            hex.append(String.format("%02x",b));
+        }
+        return hex.toString();
+    }
+
     public static String hashObject(byte[] content, String type) throws NoSuchAlgorithmException, IOException {
         int contentSize = content.length;
         String headerMessage = type+" "+String.valueOf(contentSize)+"\0";
@@ -30,15 +49,7 @@ public class HashContent {
         System.arraycopy(headerBytes,0,store,0,headerBytes.length);
         System.arraycopy(content,0,store,headerBytes.length,contentSize);
 
-
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] digest = md.digest(store);
-        StringBuilder hex = new StringBuilder();
-        for(byte b : digest)
-        {
-            hex.append(String.format("%02x",b));
-        }
-        String hashMessage = hex.toString();
+        String hashMessage = computeHash(content,type);
         System.out.println("Hashed Message: "+hashMessage);
 
         Deflater deflater = new Deflater();

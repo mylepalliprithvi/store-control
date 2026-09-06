@@ -1,6 +1,6 @@
 package remote.push.service;
+import commit.CommitGraph;
 import common.Constants;
-import log.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -84,20 +84,7 @@ public class PushService {
     }
 
     private boolean isFastForward(String newCommitHash, String previousRemoteCommitHash) throws Exception {
-        if(previousRemoteCommitHash == null)
-        {
-            return true;
-        }
-        String current = newCommitHash;
-        while(current != null && !current.isEmpty())
-        {
-            if(current.equals(previousRemoteCommitHash))
-            {
-                return true;
-            }
-            current = Log.deserializeCommit(current).getParentCommitHash();
-        }
-        return false;
+        return CommitGraph.isAncestor(previousRemoteCommitHash, newCommitHash);
     }
 
     public String getLatestCommitOnBranch(String branchName) throws IOException {

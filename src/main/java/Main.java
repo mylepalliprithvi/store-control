@@ -3,180 +3,236 @@ import branch.Branch;
 import checkout.Checkout;
 import commit.Commit;
 import common.Constants;
+import config.Config;
+import diff.Diff;
 import file.FileUtil;
-import hash.*;
-import init.*;
+import hash.HashContent;
+import init.Init;
 import log.Log;
+import merge.Merge;
+import pull.Pull;
+import push.Push;
+import status.Status;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-public class Main {
+@Command(name="store", mixinStandardHelpOptions = true, description = "A Git-like version control system.")
+public class Main implements Runnable {
 
-    public static void main(String[] args) throws Exception {
-        int n = args.length;
-        String arg0 = "";
-        String arg1 = "";
-        if(n>0)
+    public static void main(String[] args) {
+        int exitCode = new CommandLine(new Main()).execute(args);
+        System.exit(exitCode);
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Usage: store <command> [args]. Run 'store --help' for a list of commands.");
+    }
+
+    @Command(name="init", mixinStandardHelpOptions = true, description = "Create a .store repository in the current directory")
+    void initialize() throws Exception {
+        System.out.println("Proceeding to initialize store as command entered is 'store init' ");
+        Init.init();
+    }
+
+    @Command(name="hash-object", mixinStandardHelpOptions = true, description = "Hash and store a file as a blob, print its hash")
+    void hashObject(@Parameters(index="0", paramLabel="<file>", description="file to hash") String file) throws Exception {
+        if(!isInitialized())
         {
-            arg0 = args[0];
+            System.out.println("Store not initalized!!");
+            return;
         }
-        if(n>1)
+        System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
+        if(!FileUtil.doesFileExist(file))
         {
-            arg1 = args[1];
+            System.out.println("File "+file+" does not exist!!");
+            return;
         }
-        Init init = new Init();
-        HashContent hashContent = new HashContent();
-        FileUtil fileUtil;
-        System.out.println("command selected: "+arg0);
+        byte[] fileBytes = Files.readAllBytes(Path.of(file));
+        String hashCode = HashContent.hashObject(fileBytes,"blob");
+        System.out.println("Hash code of file: "+hashCode);
+    }
 
-        if(arg1.isEmpty())
+    @Command(name="cat-file", mixinStandardHelpOptions = true, description = "Print the decompressed content of an object")
+    void catFile(@Parameters(index="0", paramLabel="<hash>", description="hash to read") String hash) throws Exception {
+        if(!isInitialized())
         {
-            arg1 = "Not Applicable";
+            System.out.println("Store not initalized!!");
+            return;
         }
-        System.out.println("Argument 2: "+arg1);
+        System.out.println("Proceeding to read out contents of hash provided as command selected is: 'store cat-file' ");
+        String content = HashContent.readObject(hash);
+        System.out.println("Content of hash code "+hash+" is: "+content);
+    }
 
-        if(arg0.equalsIgnoreCase("init"))
+    @Command(name="add", mixinStandardHelpOptions = true, description = "Stage a file, or '.' for everything not excluded by .storeignore")
+    void add(@Parameters(index="0", paramLabel="<file>", description="file to add, or '.' for everything") String fileName) throws Exception {
+        if(!isInitialized())
         {
-            System.out.println("Proceeding to initialize store as command entered is 'store init' ");
-            init.init();
+            System.out.println("Store not initalized!!");
+            return;
         }
-
-        else if(arg0.equals("hash-object"))
+        System.out.println("Proceeding to add file: "+fileName+" to store");
+        if(fileName.equals("."))
         {
-            System.out.println("Proceeding to perform hashing object.. as command entered is 'store hash-object' ");
-            if(init==null)
-            {
-                System.out.println("Store not initalized!!");
-                return;
-            }
-            //check file exists
-            fileUtil = new FileUtil();
-            boolean fileExists = fileUtil.doesFileExist(arg1);
-            if(!fileExists)
-            {
-                System.out.println("File "+arg1+ " does not exist!!");
-                return;
-            }
-            //hash content
-            byte[] fileBytes = Files.readAllBytes(Path.of(arg1));
-            String hashCode = hashContent.hashObject(fileBytes,"blob");
-            System.out.println("Hash code of file: "+hashCode);
+            addAllFiles(new File("."));
         }
-
-        else if(arg0.equals("cat-file"))
+        else
         {
-            if(init==null)
-            {
-                System.out.println("Store not initalized!!");
-                return;
-            }
-            System.out.println("Proceeding to read out contents of hash provided as command selected is: 'store cat-file' ");
-            String content = hashContent.readObject(arg1);
-            System.out.println("Content of hash code "+arg1+" is: "+content);
+            Add.addFile(Path.of(fileName));
         }
+    }
 
-        else if(arg0.equals("add"))
+    @Command(name="commit", mixinStandardHelpOptions = true, description = "Commit the staged snapshot")
+    void commit(@Option(names="-m", required=true, paramLabel="<message>", description="commit message") String message) throws Exception {
+        if(!isInitialized())
         {
-            if(init==null)
-            {
-                System.out.println("Store not initalized!!");
-                return;
-            }
-
-            System.out.println("Proceeding to add file: "+arg1+" to store");
-            if(arg1.equals("."))
-            {
-                addAllFiles(new File("."));
-            }
-            else{
-                Add.addFile(Path.of(arg1));
-            }
+            System.out.println("store not initialized!!");
+            return;
         }
+        System.out.println("Proceeding to commit with message: "+message);
+        Commit.commit(message);
+    }
 
-        else if(arg0.equals("commit"))
+    @Command(name="log", mixinStandardHelpOptions = true, description = "Show commit history for the current branch")
+    void log() throws Exception {
+        if(!isInitialized())
         {
-            if(init==null)
-            {
-                System.out.println("store not initialized!!");
-                return;
-            }
-            String commitMessage = "";
-            for(int i=1;i<args.length;i++)
-            {
-                if(args[i].equals("-m") && i+1<args.length)
-                {
-                    commitMessage = args[i+1];
-                    break;
-                }
-            }
-            if(commitMessage.isEmpty())
-            {
-                System.out.println("Commit message required: use 'store commit -m \"message\"'");
-                return;
-            }
-            System.out.println("Proceeding to commit with message: "+commitMessage);
-            Commit.commit(commitMessage);
+            System.out.println("store not initialized!!");
+            return;
         }
+        System.out.println("Proceeding to log all the commits");
+        Log.log();
+    }
 
-        else if(arg0.equals("log"))
+    @Command(name="branch", mixinStandardHelpOptions = true, description = "List branches, or create a new one from the current commit")
+    void branch(@Parameters(index="0", arity="0..1", paramLabel="<name>", description="new branch name; omit to list branches") String name) throws Exception {
+        if(!isInitialized())
         {
-            if(init==null)
-            {
-                System.out.println("store not initialized!!");
-                return;
-            }
-            System.out.println("Proceeding to log all the commits as chosen command is: "+arg1);
-            Log.log();
+            System.out.println("store not initialized!!");
+            return;
         }
+        if(name == null)
+        {
+            System.out.println("Proceeding to list all branches");
+            Branch.listAllBranches();
+        }
+        else
+        {
+            System.out.println("Proceeding to create a new branch with name: "+name);
+            Branch.branch(name);
+        }
+    }
 
-        else if(arg0.equals("branch"))
+    @Command(name="checkout", mixinStandardHelpOptions = true, description = "Switch branches and update the working directory")
+    void checkout(@Parameters(index="0", paramLabel="<branch>", description="branch to checkout") String branch) throws Exception {
+        if(!isInitialized())
         {
-            if(init==null)
-            {
-                System.out.println("store not initialized!!");
-                return;
-            }
-            if(arg1.equals("Not Applicable"))
-            {
-                System.out.println("Proceeding to list all branches as command is: "+arg1);
-                Branch.listAllBranches();
-            }
-            else {
-                System.out.println("Proceeding to create a new branch with name: "+arg1);
-                Branch.branch(arg1);
-            }
+            System.out.println("store not initialized!!");
+            return;
         }
+        System.out.println("Proceeding to checkout to branch: "+branch);
+        Checkout.checkout(branch);
+    }
 
-        else if(arg0.equals("checkout"))
+    @Command(name="status", mixinStandardHelpOptions = true, description = "Show untracked / modified / staged / deleted files")
+    void status() throws Exception {
+        if(!isInitialized())
         {
-            System.out.println("Proceeding to checkout to branch: "+arg1);
-            Checkout.checkout(arg1);
+            System.out.println("store not initialized!!");
+            return;
         }
+        Status.status();
+    }
+
+    @Command(name="merge", mixinStandardHelpOptions = true, description = "Merge a branch into the current one (never produces conflicts)")
+    void merge(@Parameters(index="0", paramLabel="<branch>", description="branch to merge into the current branch") String branch) throws Exception {
+        if(!isInitialized())
+        {
+            System.out.println("store not initialized!!");
+            return;
+        }
+        System.out.println("Proceeding to merge branch: "+branch);
+        Merge.merge(branch);
+    }
+
+    @Command(name="diff", mixinStandardHelpOptions = true, description = "Line-by-line diff of a file's HEAD version vs. its working directory content")
+    void diff(@Parameters(index="0", paramLabel="<file>", description="file to diff against HEAD") String file) throws Exception {
+        if(!isInitialized())
+        {
+            System.out.println("store not initialized!!");
+            return;
+        }
+        Diff.diff(file);
+    }
+
+    @Command(name="config", mixinStandardHelpOptions = true, description = "View or set author info and the remote server URL")
+    void config(@Option(names="--name", paramLabel="<name>", description="author name") String name,
+                @Option(names="--email", paramLabel="<email>", description="author email") String email,
+                @Option(names="--remote-url", paramLabel="<url>", description="remote server base URL, e.g. http://localhost:8080") String remoteUrl) throws Exception {
+        if(!isInitialized())
+        {
+            System.out.println("store not initialized!!");
+            return;
+        }
+        if(name == null && email == null && remoteUrl == null)
+        {
+            Config.showConfig();
+        }
+        else
+        {
+            if(name != null)
+            {
+                Config.setName(name);
+            }
+            if(email != null)
+            {
+                Config.setEmail(email);
+            }
+            if(remoteUrl != null)
+            {
+                Config.setRemoteUrl(remoteUrl);
+            }
+        }
+    }
+
+    @Command(name="push", mixinStandardHelpOptions = true, description = "Push the current branch to the configured remote")
+    void push() throws Exception
+    {
+        if(!isInitialized())
+        {
+            System.out.println("store not initialized!!");
+            return;
+        }
+        Push.push();
+    }
+
+    @Command(name="pull", mixinStandardHelpOptions = true, description = "Pull the current branch from the configured remote")
+    void pull() throws Exception
+    {
+        if(!isInitialized())
+        {
+            System.out.println("store not initialized!!");
+            return;
+        }
+        Pull.pull();
     }
 
     private static void addAllFiles(File directory) throws Exception
     {
-        File[] listOfFiles = directory.listFiles();
-        for(File file : listOfFiles)
+        for(Path path : FileUtil.collectTrackableFiles(directory))
         {
-            if(file.getName().equals(Constants.root) || file.getName().equals(".git") || file.getName().equals("target"))
-            {
-                continue;
-            }
-            if(file.isDirectory())
-            {
-                addAllFiles(file);
-            }
-            else
-            {
-                Add.addFile(file.toPath());
-            }
+            Add.addFile(path);
         }
     }
 
-
-
-
+    private static boolean isInitialized() {
+        return Files.exists(Path.of(Constants.root));
+    }
 }

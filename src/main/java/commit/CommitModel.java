@@ -5,6 +5,7 @@ public class CommitModel {
     public String commitAuthorName;
     public String commitAuthorEmail;
     public String parentCommitHash;
+    public String mergeParentCommitHash;
     public String commitTimeStamp;
     public String commitMessage;
     public String treeHash;
@@ -56,6 +57,14 @@ public class CommitModel {
 
     public String getParentCommitHash() {
         return parentCommitHash;
+    }
+
+    public String getMergeParentCommitHash() {
+        return mergeParentCommitHash;
+    }
+
+    public void setMergeParentCommitHash(String mergeParentCommitHash) {
+        this.mergeParentCommitHash = mergeParentCommitHash;
     }
 
     public String getCommitMessage() {

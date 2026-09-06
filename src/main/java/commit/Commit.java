@@ -8,10 +8,13 @@ import hash.HashContent;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import tree.Tree;
+import tree.TreeEntry;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Commit {
 
@@ -58,6 +61,10 @@ public class Commit {
         {
             sb.append("parent ").append(commit.getParentCommitHash()).append("\n");
         }
+        if(commit.getMergeParentCommitHash()!=null && !commit.getMergeParentCommitHash().isEmpty())
+        {
+            sb.append("merge-parent ").append(commit.getMergeParentCommitHash()).append("\n");
+        }
         sb.append("author ").append(commit.getCommitAuthorName()).append(" ").append(commit.getCommitAuthorEmail()).append("\n");
         sb.append("timestamp ").append(commit.getCommitTimeStamp()).append("\n");
         sb.append("\n");
@@ -69,6 +76,25 @@ public class Commit {
         String commitContent = HashContent.readObject(commitHash);
         String firstLine = commitContent.split("\n",2)[0];
         return firstLine.replaceFirst("^tree\\s+","");
+    }
+
+    // path -> blob hash for every file tracked in commitHash's tree. Shared by
+    // status/merge/diff, all of which need "what did HEAD (or some other
+    // commit) have at this path".
+    public static Map<String,String> getBlobPathsForCommit(String commitHash) throws Exception {
+        Map<String,String> map = new HashMap<>();
+        if(commitHash == null || commitHash.isEmpty())
+        {
+            return map;
+        }
+        for(TreeEntry entry : Tree.readTree(getTreeHashFromCommit(commitHash),""))
+        {
+            if(entry.getFileType().equals("blob"))
+            {
+                map.put(entry.getFilePath().toString(),entry.getFileContentHash());
+            }
+        }
+        return map;
     }
 
 }

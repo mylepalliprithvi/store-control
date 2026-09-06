@@ -22,3 +22,15 @@
 
 -- store branch --
 /* Lists all branches in the repository */
+
+-- store checkout <branch-name> --
+/* Switches to branch <branch-name> */
+
+-- store diff --
+/* Diff of file from last commit to now */
+
+-- store pull --
+/* Pulls commits from remote */
+
+-- store push --
+/* Pushes commits to remote */

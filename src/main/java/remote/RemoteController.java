@@ -30,8 +30,8 @@ public class RemoteController {
     }
 
     @GetMapping("/pull/{branch}")
-    public ResponseEntity<PullResponseModel> pullCommitFromOrigin(@PathVariable("branch") String branchName) throws Exception {
-        logger.info("Pulling commits into branch: {} from branch: origin/{}",branchName,branchName);
-        return ResponseEntity.ok(pullService.pullCommits(branchName));
+    public ResponseEntity<PullResponseModel> pullCommitFromOrigin(@PathVariable("branch") String branchName, @RequestParam(value = "localCommitHash", required = false, defaultValue = "") String localCommitHash) throws Exception {
+        logger.info("Pulling commits into branch: {} from branch: origin/{}, client at commit: {}",branchName,branchName,localCommitHash);
+        return ResponseEntity.ok(pullService.pullCommits(branchName,localCommitHash));
     }
 }

@@ -142,4 +142,37 @@ public class Tree {
         }
         return treeContents;
     }
+
+    // Writes any path in finalBlobPaths whose hash differs from previousBlobPaths
+    // onto disk. deleteMissing controls whether paths that dropped out of
+    // finalBlobPaths entirely get removed - true for a plain fast-forward
+    // checkout, false when the caller wants a no-data-loss union instead
+    // (e.g. store merge's non-fast-forward path).
+    public static void materializeBlobPaths(Map<String,String> finalBlobPaths, Map<String,String> previousBlobPaths, boolean deleteMissing) throws Exception {
+        for(Map.Entry<String,String> entry : finalBlobPaths.entrySet())
+        {
+            String path = entry.getKey();
+            String hash = entry.getValue();
+            if(!hash.equals(previousBlobPaths.get(path)))
+            {
+                Path filePath = Path.of(path);
+                Path parent = filePath.getParent();
+                if(parent != null)
+                {
+                    Files.createDirectories(parent);
+                }
+                Files.writeString(filePath,HashContent.readObject(hash));
+            }
+        }
+        if(deleteMissing)
+        {
+            for(String path : previousBlobPaths.keySet())
+            {
+                if(!finalBlobPaths.containsKey(path))
+                {
+                    Files.deleteIfExists(Path.of(path));
+                }
+            }
+        }
+    }
 }
