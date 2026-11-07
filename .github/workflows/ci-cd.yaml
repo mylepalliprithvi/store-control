@@ -8,7 +8,7 @@ on:
 jobs:
   # -- CI Job: Test and Build --
   test-and-build:
-    runs-on: ubuntu-latestx
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
