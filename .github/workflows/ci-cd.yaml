@@ -10,6 +10,8 @@ jobs:
   # -- CI Job: Test and Build --
   test-and-build:
     runs-on: ubuntu-latest
+    outputs:
+     version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout repository
@@ -34,6 +36,12 @@ jobs:
           path: target/*.jar
           if-no-files-found: error
 
+      - name: Read version from pom.xml
+        id: version
+        run: |
+         VERSION=$(mvn -B -q -DforceStdout help:evaluate -Dexpression=project.version)
+         echo "version=$VERSION" >> $GITHUB_OUTPUT
+
   # --- CD Job: Deploy
   release:
     needs: test-and-build
@@ -49,10 +57,18 @@ jobs:
           name: app-jar
           path:  ./artifact
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release if new version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version: ${{ needs.test-and-build.outputs.version }}
         run: |
+          TAG="v$VERSION"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then 
+          echo "Release tag $TAG already exists. Skipping"
+          exit 0
+          fi
           gh release create "$GITHUB_REF_NAME" ./artifact/*.jar \
           --repo "$GITHUB_REPOSITORY" \
+          --target "$GITHUB_SHA" \
+          --title "$TAG" \
           --generate-notes
