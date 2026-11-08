@@ -2,6 +2,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main]
+    tags: [v*]
   pull_request:
     branches: [main]
 
@@ -19,8 +20,6 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
-          maven-version: 3.8.1
-          cache: maven
 
       - name: Run JUnits unit tests
         run: mvn -B test
@@ -50,10 +49,10 @@ jobs:
           name: app-jar
           path:  ./artifact
 
-      - name: Create Github Release
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            gh release create "$GITHUB_REF_NAME" ./artifact/*.jar \ 
-            -- repo "$GITHUB_REPOSITORY"
-            --generate-notes
+          gh release create "$GITHUB_REF_NAME" ./artifact/*.jar \
+          --repo "$GITHUB_REPOSITORY" \
+          --generate-notes
